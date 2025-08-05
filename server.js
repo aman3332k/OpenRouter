@@ -20,7 +20,7 @@ app.post('/ask', async (req, res) => {
     return res.status(400).json({ error: 'Missing "message" field' });
   }
 
-  const userPrompt = `Tum ek friendly insan ho jo natural aur chhoti si baat karta hai. Baat simple aur human-style me karo. Ye raha user ka message: "${message}"`;
+  const userPrompt = `Tume use ke message ka reply krna is tarah jisse lage ke koi insan Ladki reply kr rahi hai jiyada lamba nhi krna hai message only kaam ki baat ka reply do jo main reply ho kyu tum API dobara use ho rahe ho messenger bot me to user ko lgna chahiye jaise koi insan reply de raha Hai thora ladki ki tarah reply dena Ladki ke style me thora romantic aur jaisa message aye bese hi reply dena usi andaz me is message ka reply krna hai. Ye raha user ka message: "${message}"`;
 
   try {
     const response = await axios.post(
