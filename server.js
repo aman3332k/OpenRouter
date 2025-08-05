@@ -5,12 +5,22 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
+const starters = [
+  "Haan bhai, simple baat yeh hai:",
+  "Suno na, ye raha:",
+  "Dekho yaar, seedha jawab:",
+  "Bhai, meri sunn 👇",
+  "Acha suno ❤️"
+];
+
 app.post('/ask', async (req, res) => {
   const { message } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: 'Missing "message" field' });
   }
+
+  const userPrompt = `Tum ek friendly insan ho jo natural aur chhoti si baat karta hai. Baat simple aur human-style me karo. Ye raha user ka message: "${message}"`;
 
   try {
     const response = await axios.post(
@@ -20,7 +30,7 @@ app.post('/ask', async (req, res) => {
           {
             parts: [
               {
-                text: message
+                text: userPrompt
               }
             ]
           }
@@ -34,11 +44,28 @@ app.post('/ask', async (req, res) => {
       }
     );
 
-    const reply = response.data.candidates[0]?.content?.parts[0]?.text || 'No response';
+    let reply = response.data.candidates[0]?.content?.parts[0]?.text || 'No response';
+
+    // Clean reply: remove *bold*, line breaks etc.
+    reply = reply.replace(/\*\*/g, '').replace(/[\r\n]+/g, ' ').trim();
+
+    // Optional: Soft trim if very large
+    if (reply.length > 450) {
+      reply = reply.slice(0, 420).trim() + "... aur baaki baad me 😄";
+    }
+
+    // Add human-like starter
+    const starter = starters[Math.floor(Math.random() * starters.length)];
+    reply = `${starter}\n${reply}`;
+
     res.json({ reply });
+
   } catch (error) {
     console.error('Gemini API error:', error?.response?.data || error.message);
-    res.status(500).json({ error: 'Gemini API error', details: error?.response?.data || error.message });
+    res.status(500).json({
+      error: 'Gemini API error',
+      details: error?.response?.data || error.message
+    });
   }
 });
 
