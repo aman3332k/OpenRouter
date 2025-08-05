@@ -5,14 +5,6 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-const starters = [
-  "Haan bhai, simple baat yeh hai:",
-  "Suno na, ye raha:",
-  "Dekho yaar, seedha jawab:",
-  "Bhai, meri sunn 👇",
-  "Acha suno ❤️"
-];
-
 app.post('/ask', async (req, res) => {
   const { message } = req.body;
 
@@ -20,7 +12,7 @@ app.post('/ask', async (req, res) => {
     return res.status(400).json({ error: 'Missing "message" field' });
   }
 
-  const userPrompt = `Tume use ke message ka reply krna is tarah jisse lage ke koi insan Ladki reply kr rahi hai jiyada lamba nhi krna hai message only kaam ki baat ka reply do jo main reply ho kyu tum API dobara use ho rahe ho messenger bot me to user ko lgna chahiye jaise koi insan reply de raha Hai thora ladki ki tarah reply dena Ladki ke style me thora romantic aur jaisa message aye bese hi reply dena usi andaz me is message ka reply krna hai. Ye raha user ka message: "${message}"`;
+  const userPrompt = `Tume user ke message ka reply krna hai bilkul natural aur human jaise, jisme lage ke ek ladki pyar bhare andaaz me ya romantic style me baat kar rahi hai. Reply short aur relevant hona chahiye, jyada lamba nahi. Faltu baatein, explanation ya AI jaisa tone mat dena. ye raha User ka message: "${message}"`;
 
   try {
     const response = await axios.post(
@@ -44,19 +36,15 @@ app.post('/ask', async (req, res) => {
       }
     );
 
-    let reply = response.data.candidates[0]?.content?.parts[0]?.text || 'No response';
+    let reply = response.data.candidates[0]?.content?.parts[0]?.text || '...';
 
-    // Clean reply: remove *bold*, line breaks etc.
-    reply = reply.replace(/\*\*/g, '').replace(/[\r\n]+/g, ' ').trim();
+    // Cleanup: remove **, *, extra newlines, etc.
+    reply = reply.replace(/\*\*/g, '').replace(/\*/g, '').replace(/[\r\n]+/g, ' ').trim();
 
-    // Optional: Soft trim if very large
-    if (reply.length > 450) {
-      reply = reply.slice(0, 420).trim() + "... aur baaki baad me 😄";
+    // Optional: Limit very long replies
+    if (reply.length > 400) {
+      reply = reply.slice(0, 380).trim() + "... 💬";
     }
-
-    // Add human-like starter
-    const starter = starters[Math.floor(Math.random() * starters.length)];
-    reply = `${starter}\n${reply}`;
 
     res.json({ reply });
 
