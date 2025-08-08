@@ -6,23 +6,25 @@ const app = express();
 app.use(express.json());
 
 app.post('/ask', async (req, res) => {
-  const { message } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: 'Missing "message" field' });
-  }
-
-  const userPrompt = `Tum Ek Ai Ho Aur tum Messenger Bot me use ho rahi tume reply krna hai . ye raha User ka message: "${message}"`;
-
   try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Missing "message" field' });
+    }
+
+    // User ka prompt
+    const userPrompt = `Tum ek AI ho jo Messenger bot me use ho rahi hai. Tum ek friendly ladki jaise casual tone me jawab dogi. User ka message: "${message}"`;
+
+    // OpenRouter API request
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
       {
-        model: "mistralai/mixtral-8x7b", // you can change this to another model like 'openai/gpt-3.5-turbo' or 'meta-llama/llama-3-70b-instruct'
+        model: process.env.OPENROUTER_MODEL || "google/gemma-3-27b-it", // Change in .env if needed
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful female AI Messenger bot who responds in a girl-like conversational tone.'
+            content: 'You are a helpful female AI Messenger bot who responds in a girl-like, friendly conversational tone.'
           },
           {
             role: 'user',
@@ -34,17 +36,23 @@ app.post('/ask', async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://yourdomain.com', // Optional: Replace with your domain or project
-          'X-Title': 'MessengerBot-AK' // Optional: Project title
+          'HTTP-Referer': process.env.SITE_URL || 'https://example.com',
+          'X-Title': process.env.SITE_TITLE || 'MessengerBot-AK'
         }
       }
     );
 
-    let reply = response.data.choices[0]?.message?.content || '...';
+    // Extract reply
+    let reply = response.data?.choices?.[0]?.message?.content || 'Mujhe samajh nahi aaya 💬';
 
-    // Cleanup
-    reply = reply.replace(/\*\*/g, '').replace(/\*/g, '').replace(/[\r\n]+/g, ' ').trim();
+    // Clean formatting
+    reply = reply
+      .replace(/\*\*/g, '') // bold hatao
+      .replace(/\*/g, '')   // italics hatao
+      .replace(/[\r\n]+/g, ' ') // new lines hatao
+      .trim();
 
+    // Limit reply length
     if (reply.length > 400) {
       reply = reply.slice(0, 380).trim() + "... 💬";
     }
@@ -62,5 +70,5 @@ app.post('/ask', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`OpenRouter API server running on port ${PORT}`);
+  console.log(`🚀 OpenRouter API server running on port ${PORT}`);
 });
